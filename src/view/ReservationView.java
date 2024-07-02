@@ -1,6 +1,7 @@
 package view;
 
 import business.ReservationManager;
+import business.RoomManager;
 import core.Helper;
 import entity.Reservation;
 import entity.Room;
@@ -30,7 +31,7 @@ public class ReservationView extends Layout {
     private Reservation reservation;
     private ReservationManager reservationManager;
 
-    public ReservationView(Reservation reservation) {
+    public ReservationView(Reservation reservation, Room room, JTextField fld_checkin, JTextField fld_checkout, JTextField fld_adult_count, JTextField fld_child_count) {
         this.reservation = reservation;
         this.reservationManager = new ReservationManager();
         this.add(container);
@@ -65,20 +66,23 @@ public class ReservationView extends Layout {
                     Date checkinDate = Date.valueOf(checkinLocalDate);
                     Date checkoutDate = Date.valueOf(checkoutLocalDate);
 
-                    this.reservation.setCheckinDate(checkinDate);
-                    this.reservation.setCheckoutDate(checkoutDate);
+                    this.reservation.setCheckinDate(checkinDate.toLocalDate());
+                    this.reservation.setCheckoutDate(checkoutDate.toLocalDate());
 
                 } catch (DateTimeParseException ex) {
                     Helper.showMessage("date");
                     return;
+                } catch (NullPointerException ex) {
+                    Helper.showMessage("Tarih verileri boş.");
+                    return;
                 }
 
-                int adultCount = Integer.parseInt(fld_adult_count.getText());
-                int childCount = Integer.parseInt(fld_child_count.getText());
+                int adultCount = Integer.parseInt(this.fld_adult_count.getText());
+                int childCount = Integer.parseInt(this.fld_child_count.getText());
 
-                reservationManager.calculateAndSetTotalPrice(reservation, adultCount, childCount);
+                //reservationManager.calculateAndSetTotalPrice(this.reservation, adultCount, childCount);
 
-                fld_total_price.setText(String.valueOf(reservation.getTotalPrice()));
+                fld_total_price.setText(String.valueOf(this.reservation.getTotalPrice()));
 
                 this.reservation.setHotelId(Integer.parseInt(fld_hotel_id.getText()));
                 this.reservation.setRoomId(Integer.parseInt(fld_room_id.getText()));

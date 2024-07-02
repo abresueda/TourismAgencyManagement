@@ -1,6 +1,7 @@
 package view;
 
 import business.HotelManager;
+import business.ReservationManager;
 import business.RoomManager;
 import core.Helper;
 import entity.Room;

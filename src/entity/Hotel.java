@@ -19,6 +19,27 @@ public class Hotel {
     private boolean spa;
     private boolean roomService;
 
+    public Hotel(int hotelId, String hotelName, String city, String region, String address, String email, String phone,
+                 int star, boolean parking, boolean wifi, boolean pool, boolean fitness, boolean concierge, boolean spa, boolean roomService) {
+        this.hotelId = hotelId;
+        this.hotelName = hotelName;
+        this.city = city;
+        this.region = region;
+        this.address = address;
+        this.email = email;
+        this.phone = phone;
+        this.star = star;
+        this.parking = parking;
+        this.wifi = wifi;
+        this.pool = pool;
+        this.fitness = fitness;
+        this.concierge = concierge;
+        this.spa = spa;
+        this.roomService = roomService;
+    }
+
+    public Hotel() {}
+
     public int getHotelId() {
         return hotelId;
     }

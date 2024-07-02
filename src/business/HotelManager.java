@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class HotelManager {
     private final HotelDao hotelDao = new HotelDao();
 
+    //Belirtilen ID'ye sahip oteli getiren metod.
     public Hotel getById(int id) {
         return this.hotelDao.getById(id);
     }

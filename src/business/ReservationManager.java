@@ -6,14 +6,22 @@ import entity.Reservation;
 import entity.Room;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 public class ReservationManager {
-    private final ReservationDao reservationDao = new ReservationDao();
-    private RoomManager roomManager = new RoomManager();
+    private final ReservationDao reservationDao;
+    private RoomManager roomManager;
+    private Room room;
+
+    public ReservationManager() {
+        this.reservationDao = new ReservationDao();
+    }
 
     public Reservation getById(int id) {
         return this.reservationDao.getById(id);
+    }
+
+    public ArrayList<Reservation> findByRoomId(int roomId) {
+        return this.reservationDao.findByRoomId(roomId);
     }
 
     public ArrayList<Reservation> findAll() {
@@ -41,65 +49,90 @@ public class ReservationManager {
     }
 
     public boolean save(Reservation reservation) {
-        Room room = roomManager.getById(reservation.getRoomId());
+        //Room room = this.roomManager.getById(reservation.getRoomId());
 
-        if (room.getStock() <= 0) {
+        /*if (!isRoomAvailable(reservation.getRoomId(), reservation.getCheckinDate(), reservation.getCheckoutDate())) {
             Helper.showMessage("stock");
             return false;
         }
 
-        if (this.getById(reservation.getReservationId()) != null) {
+        /*if (this.getById(reservation.getReservationId()) != null) {
             Helper.showMessage(reservation.getReservationId() + " ID kayıtlı rezervasyon bulunamadı.");
             return false;
         }
 
         boolean saved = reservationDao.save(reservation);
         if (saved) {
-            roomManager.decreaseRoomStock(reservation.getRoomId());
+            this.roomManager.decreaseRoomStock(reservation.getRoomId());
         }
-        return saved;
+        return saved;*/
+        return this.reservationDao.save(reservation);
     }
 
     public boolean update(Reservation reservation) {
-        Reservation existingReservation = reservationDao.getById(reservation.getReservationId());
+        /*Reservation existingReservation = this.reservationDao.getById(reservation.getReservationId());
         if (existingReservation == null) {
             Helper.showMessage("notFound");
             return false;
         }
 
         //Oda stoğunu geri yüklemek için.
-        roomManager.increaseRoomStock(existingReservation.getRoomId());
+        this.roomManager.increaseRoomStock(existingReservation.getRoomId());
+
+        if (!isRoomAvailable(reservation.getRoomId(), reservation.getCheckinDate(), reservation.getCheckoutDate())) {
+            Helper.showMessage("stock");
+            return false;
+        }
 
         calculateAndSetTotalPrice(reservation, reservation.getAdultCount(), reservation.getChildCount());
 
-        boolean updated = reservationDao.update(reservation);
+        boolean updated = this.reservationDao.update(reservation);
         if (updated) {
-            roomManager.decreaseRoomStock(reservation.getRoomId());
+            this.roomManager.decreaseRoomStock(reservation.getRoomId());
         }
-        return updated;
+        return updated;*/
+        return this.reservationDao.update(reservation);
     }
 
     public boolean delete(int id) {
-        Reservation reservation = reservationDao.getById(id);
+        //Reservation reservation = this.reservationDao.getById(id);
         if (this.getById(id) == null) {
             Helper.showMessage(id + " ID kayıtlı rezervasyon bulunamadı.");
             return false;
         }
-        boolean deleted = reservationDao.delete(id);
+        /*boolean deleted = this.reservationDao.delete(id);
         if (deleted) {
-            roomManager.increaseRoomStock(reservation.getRoomId());
+            this.roomManager.increaseRoomStock(reservation.getRoomId());
         }
-        return deleted;
+        return deleted;*/
+        return this.reservationDao.delete(id);
     }
 
-    public void calculateAndSetTotalPrice(Reservation reservation, int adultCount, int childCount) {
-        Date checkinDate = reservation.getCheckinDate();
+    /*public void calculateAndSetTotalPrice(Reservation reservation, int adultCount, int childCount) {
+        if (roomManager == null) {
+            throw new IllegalStateException("Room manager is not initialized");
+        }
+        LocalDate checkinDate = reservation.getCheckinDate();
         Date checkoutDate = reservation.getCheckoutDate();
         int nights = (int) ((checkoutDate.getTime() - checkinDate.getTime()) / (1000*60*60*24));
 
-        Room room = roomManager.getById(reservation.getRoomId());
+        Room room = this.roomManager.getById(reservation.getReservationId());
         double adultPrice = room.getAdultPrice();
         double childPrice = room.getChildPrice();
         reservation.calculateTotalPrice(adultCount, childCount, adultPrice, childPrice, nights);
     }
+
+    //Belirli bir oda için, belirtilen tarihler arasında mevcut stok olup olmadığını kontrol eder.
+    private boolean isRoomAvailable(int roomId, Date checkinDate, Date checkoutDate) {
+        ArrayList<Reservation> reservations = this.reservationDao.findByRoomId(roomId); //Bütün rezervasyonlar alınır.
+        Room room = this.roomManager.getById(roomId);
+
+        int totalReserved = 0;
+        for (Reservation reservation : reservations) {
+            if (checkinDate.before(reservation.getCheckoutDate()) && checkoutDate.after(reservation.getCheckinDate())) {
+                totalReserved++;
+            }
+        }
+        return (room.getStock() - totalReserved) > 0;
+    }*/
 }

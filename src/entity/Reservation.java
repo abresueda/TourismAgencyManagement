@@ -1,6 +1,6 @@
 package entity;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class Reservation {
     private int reservationId;
@@ -10,11 +10,30 @@ public class Reservation {
     private String citizenNumber;
     private String email;
     private String phoneNumber;
-    private Date checkinDate;
-    private Date checkoutDate;
+    private LocalDate checkinDate;
+    private LocalDate checkoutDate;
     private int totalPrice;
     private int adultCount;
     private int childCount;
+
+    public Reservation() {
+    }
+
+    public Reservation(int reservationId, int hotelId, int roomId, String customerName, String citizenNumber, String email, String phoneNumber,
+                       LocalDate checkinDate, LocalDate checkoutDate, int totalPrice, int adultCount, int childCount) {
+        this.reservationId = reservationId;
+        this.hotelId = hotelId;
+        this.roomId = roomId;
+        this.customerName = customerName;
+        this.citizenNumber = citizenNumber;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.checkinDate = checkinDate;
+        this.checkoutDate = checkoutDate;
+        this.totalPrice = totalPrice;
+        this.adultCount = adultCount;
+        this.childCount = childCount;
+    }
 
     public int getReservationId() {
         return reservationId;
@@ -72,19 +91,19 @@ public class Reservation {
         this.phoneNumber = phoneNumber;
     }
 
-    public Date getCheckinDate() {
+    public LocalDate getCheckinDate() {
         return checkinDate;
     }
 
-    public void setCheckinDate(Date checkinDate) {
+    public void setCheckinDate(LocalDate checkinDate) {
         this.checkinDate = checkinDate;
     }
 
-    public Date getCheckoutDate() {
+    public LocalDate getCheckoutDate() {
         return checkoutDate;
     }
 
-    public void setCheckoutDate(Date checkoutDate) {
+    public void setCheckoutDate(LocalDate checkoutDate) {
         this.checkoutDate = checkoutDate;
     }
 

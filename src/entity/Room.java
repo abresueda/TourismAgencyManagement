@@ -19,6 +19,26 @@ public class Room {
     private boolean safe;
     private boolean projector;
 
+    public Room(int id, int hotelId, String roomType, String pensionType, String period, double adultPrice,
+                double childPrice, int stock, int bedCount, int squareMeters, boolean tv, boolean minibar,
+                boolean gameConsole, boolean safe, boolean projector) {
+        this.id = id;
+        this.hotelId = hotelId;
+        this.roomType = roomType;
+        this.pensionType = pensionType;
+        this.period = period;
+        this.adultPrice = adultPrice;
+        this.childPrice = childPrice;
+        this.stock = stock;
+        this.bedCount = bedCount;
+        this.squareMeters = squareMeters;
+        this.tv = tv;
+        this.minibar = minibar;
+        this.gameConsole = gameConsole;
+        this.safe = safe;
+        this.projector = projector;
+    }
+
     public enum RoomType {
         SINGLE_ROOM,
         DELUXE_ROOM,
