@@ -40,6 +40,10 @@ public class Period {
         this.endDate = endDate;
     }
 
+    public String toStringDates() {
+        return startDate + " to " + endDate;
+    }
+
     @Override
     public String toString() {
         return "Period{" +

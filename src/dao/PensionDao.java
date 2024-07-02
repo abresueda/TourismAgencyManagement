@@ -100,6 +100,28 @@ public class PensionDao {
         return pensionList;
     }
 
+    public boolean save(Pension pension) {
+        String query = "INSERT INTO public.pension (hotel_id, ultra_all_inclusive, all_inclusive, bed_and_breakfast, full_board, half_board, bed_only, non_alcohol_full_credit) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try {
+            PreparedStatement pr = connection.prepareStatement(query);
+            pr.setInt(1, pension.getHotelId());
+            pr.setBoolean(2, pension.isUltraAllInclusive());
+            pr.setBoolean(3, pension.isAllInclusive());
+            pr.setBoolean(4, pension.isBedAndBreakfast());
+            pr.setBoolean(5, pension.isFullBoard());
+            pr.setBoolean(6, pension.isHalfBoard());
+            pr.setBoolean(7, pension.isBedOnly());
+            pr.setBoolean(8, pension.isNonAlcoholFullCredit());
+
+            return pr.executeUpdate() != -1;
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+        return false;
+    }
+
     public Pension match(ResultSet rs) throws SQLException {
         Pension pension = new Pension();
         pension.setPensionTypeId(rs.getInt("pension_type_id"));
