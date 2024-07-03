@@ -36,30 +36,6 @@ public class ReservationDao {
         return obj;
     }
 
-    public ArrayList<Reservation> findByRoomId(int roomId) {
-        ArrayList<Reservation> reservations = new ArrayList<>();
-        String query = "SELECT * FROM public.reservation WHERE room_id = ? ";
-
-        try {
-            PreparedStatement pr = connection.prepareStatement(query);
-            pr.setInt(1, roomId);
-            ResultSet rs = pr.executeQuery();
-
-            while (rs.next()) {
-                reservations.add(this.match(rs));
-                /*Reservation reservation = new Reservation();
-                reservation.setReservationId(rs.getInt("rez_id"));
-                reservation.setRoomId(rs.getInt("room_id"));
-                reservation.setCheckinDate(rs.getDate("check_in"));
-                reservation.setCheckoutDate(rs.getDate("check_out"));
-                reservations.add(reservation);*/
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return reservations;
-    }
-
     public ArrayList<Reservation> findAll() {
         return this.selectByQuery("SELECT * FROM public.reservation ORDER BY rez_id ASC");
     }
@@ -77,35 +53,42 @@ public class ReservationDao {
         return rezList;
     }
 
-    public boolean save(Reservation reservation) {
-        String query = "INSERT INTO public.reservation (room_id, customer_name, citizen_number, " +
-                       "email, phone_number, check_in, check_out, total_price) " +
-                       "VALUES (?,?,?,?,?,?,?,?)";
+
+    public int save(Reservation reservation) {
+        String query = "INSERT INTO public.reservation (hotel_id, room_id, customer_name, citizen_number, " +
+                "email, phone_number, check_in, check_out, total_price) " +
+                "VALUES (?,?,?,?,?,?,?,?,?)";
 
         try {
-            PreparedStatement pr = connection.prepareStatement(query);
-            //pr.setInt(1, reservation.getHotelId());
-            pr.setInt(1, reservation.getRoomId());
-            pr.setString(2, reservation.getCustomerName());
-            pr.setString(3, reservation.getCitizenNumber());
-            pr.setString(4, reservation.getEmail());
-            pr.setString(5, reservation.getPhoneNumber());
-            if (reservation.getCheckinDate() != null) {
-                pr.setDate(6, Date.valueOf(reservation.getCheckinDate()));
+            // Statement.RETURN_GENERATED_KEYS ile PreparedStatement oluşturuyoruz
+            PreparedStatement pr = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            pr.setInt(1, reservation.getHotelId());
+            pr.setInt(2, reservation.getRoomId());
+            pr.setString(3, reservation.getCustomerName());
+            pr.setString(4, reservation.getCitizenNumber());
+            pr.setString(5, reservation.getEmail());
+            pr.setString(6, reservation.getPhoneNumber());
+            pr.setDate(7, Date.valueOf(reservation.getCheckinDate()));
+            pr.setDate(8, Date.valueOf(reservation.getCheckoutDate()));
+            pr.setDouble(9, reservation.getTotalPrice());
+
+            int affectedRows = pr.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = pr.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1); // Rezervasyon ID'sini döndürüyoruz
+                    } else {
+                        throw new SQLException("Rezervasyon ID alınamadı, kayıt başarısız oldu.");
+                    }
+                }
             } else {
-                pr.setNull(6, Types.DATE);
+                throw new SQLException("Kayıt başarısız oldu, etkilenen satır yok.");
             }
-            if (reservation.getCheckoutDate() != null) {
-                pr.setDate(7, Date.valueOf(reservation.getCheckoutDate()));
-            } else {
-                pr.setNull(7, Types.DATE);
-            }
-            pr.setDouble(8, reservation.getTotalPrice());
-            return pr.executeUpdate() != -1;
         } catch (SQLException throwable) {
             throwable.printStackTrace();
         }
-        return true;
+        return -1; // Başarısızlık durumunda -1 döndürüyoruz
     }
 
     public boolean update(Reservation reservation) {
@@ -120,18 +103,8 @@ public class ReservationDao {
             pr.setString(3, reservation.getCitizenNumber());
             pr.setString(4, reservation.getEmail());
             pr.setString(5, reservation.getPhoneNumber());
-            if (reservation.getCheckinDate() != null) {
-                pr.setDate(6, Date.valueOf(reservation.getCheckinDate()));
-            } else {
-                pr.setNull(6, Types.DATE);
-            }
-            if (reservation.getCheckoutDate() != null) {
-                pr.setDate(7, Date.valueOf(reservation.getCheckoutDate()));
-            } else {
-                pr.setNull(7, Types.DATE);
-            }
-            //pr.setDate(6, Date.valueOf(reservation.getCheckinDate()));
-            //pr.setDate(7, Date.valueOf(reservation.getCheckoutDate()));
+            pr.setDate(6, Date.valueOf(reservation.getCheckinDate()));
+            pr.setDate(7, Date.valueOf(reservation.getCheckoutDate()));
             pr.setInt(8, reservation.getTotalPrice());
             pr.setInt(9, reservation.getReservationId());
             return pr.executeUpdate() != -1;
@@ -177,8 +150,6 @@ public class ReservationDao {
         } else {
             reservation.setCheckoutDate(null);
         }
-        //reservation.setCheckinDate(LocalDate.parse(rs.getString("check_in")));
-        //reservation.setCheckoutDate(LocalDate.parse(rs.getString("check_out")));
         reservation.setTotalPrice(rs.getInt("total_price"));
         return reservation;
     }

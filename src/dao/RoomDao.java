@@ -1,22 +1,21 @@
 package dao;
 
 import core.Db;
+import entity.Reservation;
 import entity.Room;
 
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class RoomDao {
-    private Connection connection;
-    //private final RoomDao roomDao;
+    private final Connection connection;
 
     public RoomDao() {
         this.connection = Db.getInstance();
         //this.roomDao = new RoomDao();
     }
 
+    //ID'ye göre odaları getiren metot.
     public Room getById(int id) {
         Room obj = null;
         String query = "SELECT * FROM public.room WHERE id = ?";
@@ -51,9 +50,9 @@ public class RoomDao {
         return roomList;
     }
 
-    public boolean save(Room room) {
+    public int save(Room room) {
         String query = "INSERT INTO public.room (hotel_id, room_type, pension_type, period, adult_price, child_price, stock, bed_count, " +
-                "squaremeters, tv, minibar, game_console, safe, projector) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                "squaremeters, tv, minibar, game_console, safe, projector) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id";
 
         try {
             PreparedStatement pr = connection.prepareStatement(query);
@@ -71,12 +70,15 @@ public class RoomDao {
             pr.setBoolean(12, room.isGameConsole());
             pr.setBoolean(13, room.isSafe());
             pr.setBoolean(14, room.isProjector());
-            return pr.executeUpdate() != -1;
 
+            ResultSet rs = pr.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1); //Room ID'yi döndürür.
+            }
         } catch (SQLException throwable) {
             throwable.printStackTrace();
         }
-        return true;
+        return -1; //Hata durumunda -1 döndür.
     }
 
     public boolean update(Room room) {
@@ -120,73 +122,33 @@ public class RoomDao {
         return true;
     }
 
-        /*try {
-            PreparedStatement pr = connection.prepareStatement(query);
-            /*pr.setString(1, "%" + city.toLowerCase() + "%"); //%...% formatında karşılaştırma yapılacak şekle dönüştürülür.
-            pr.setString(2, "%" + hotelName.toLowerCase() + "%");
-            pr.setObject(3, startDate);
-            pr.setObject(4, endDate);*/
+    //Oda Stoğunu kontrol etmek için yazılan metot.
+    public boolean updateRoomStock(Room room) {
+        String checkQuery = "SELECT stock FROM public.room WHERE id = ?";
+        String updateQuery = "UPDATE public.room SET stock = ? WHERE id = ?";
 
-            /*for (int i = 0; i< params.size(); i++) {
-                pr.setObject(i+1, params.get(i));
-            }
-            ResultSet rs = pr.executeQuery();
+        try {
+            PreparedStatement checkPr = this.connection.prepareStatement(checkQuery);
+            checkPr.setInt(1, room.getId());
+            ResultSet rs = checkPr.executeQuery();
 
-            while (rs.next()) {
-                Room room = new Room();
-                room.setId(rs.getInt("id"));
-                room.setHotelId(rs.getInt("hotel_id"));
-                room.setRoomType(Room.RoomType.valueOf(rs.getString("room_type")));
-                room.setPensionType(Room.PensionType.valueOf(rs.getString("pension_type")));
-                room.setPeriod(rs.getString("period"));
-                room.setAdultPrice(rs.getDouble("adult_price"));
-                room.setChildPrice(rs.getDouble("child_price"));
-                room.setStock(rs.getInt("stock"));
-                room.setBedCount(rs.getInt("bed_count"));
-                room.setSquareMeters(rs.getInt("squaremeters"));
-                room.setTv(rs.getBoolean("tv"));
-                room.setMinibar(rs.getBoolean("minibar"));
-                room.setGameConsole(rs.getBoolean("game_console"));
-                room.setSafe(rs.getBoolean("safe"));
-                room.setProjector(rs.getBoolean("projector"));
-                roomList.add(room);
+            if (rs.next()) {
+                int currentStock = rs.getInt("stock");
+                if (room.getStock() < 0) {
+                    //Stok 0'ın altına düşerse, işlemi iptal eder.
+                    return false;
+                }
             }
+
+            PreparedStatement pr = this.connection.prepareStatement(updateQuery);
+            pr.setInt(1, room.getStock());
+            pr.setInt(2, room.getId());
+
+            return pr.executeUpdate() != -1;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return roomList;
-    }*/
-
-    //Revize sonrası eklendi.
-    public ArrayList<Room> findRoomByHotelId (int selectedHotelId) {
-        ArrayList<Room> rooms = new ArrayList<>();
-        String query = "SELECT * FROM public.room WHERE hotel_id = ?";
-        try {
-            PreparedStatement pr = this.connection.prepareStatement(query);
-            pr.setInt(1, selectedHotelId);
-            ResultSet rs = pr.executeQuery();
-            while(rs.next()) {
-                rooms.add(this.match(rs));
-            }
-        } catch (SQLException throwable) {
-            throwable.printStackTrace();
-        }
-        return rooms;
-    }
-
-    //Revizeden sonra eklendi.
-    public boolean updateRoomStock(int roomStock, Room room) {
-        String query = "UPDATE room SET stock = ? WHERE id = ?";
-
-        try {
-            PreparedStatement pr = this.connection.prepareStatement(query);
-            pr.setInt(1, roomStock);
-            pr.setInt(2, room.getId());
-            ResultSet rs = pr.executeQuery();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return true;
+        return false;
     }
 
     public Room match(ResultSet rs) throws SQLException {

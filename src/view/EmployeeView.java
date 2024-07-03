@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -172,6 +173,8 @@ public class EmployeeView extends Layout {
                 @Override
                 public void windowClosed(WindowEvent e) {
                     loadPensionTable(null);
+                    loadHotelTable(null);
+                    loadRoomTable(null);
                 }
             });
         });
@@ -292,6 +295,7 @@ public class EmployeeView extends Layout {
 
     }
 
+    //Rezervasyon tablosunu yüklemek için. 20.Değerlendirme kriteri.
     public void loadReservationTable(ArrayList<Object[]> rezList) {
         this.col_rez = new Object[] {"Rez. ID", "Otel ID", "Oda ID", "Check-in Tarihi", "Check-out Tarihi", "Toplam Tutar", "Müşteri Adı", "Vatandaşlık No:", "Email", "Telefon No:"};
         if (rezList == null) {
@@ -310,14 +314,19 @@ public class EmployeeView extends Layout {
         this.rez_menu = new JPopupMenu();
 
         this.rez_menu.add("Yeni Rezervasyon Ekle").addActionListener(e -> {
-            int selectRezId = getTableSelectedRow(tbl_rez, 0);
-            Room selectedRoom = this.roomManager.getById(selectRezId);
-            int stock = selectedRoom.getStock();
+            this.fld_adult_count.setText("0");
+            this.fld_child_count.setText("0");
+            int adultCount = Integer.parseInt(this.fld_adult_count.getText());
+            int childCount = Integer.parseInt(this.fld_child_count.getText());
 
-            /*if (!fld_checkin.getText().trim().isEmpty() && !fld_checkout.getText().trim().isEmpty() && !fld_adult_count.getText().trim().isEmpty()) {
-                fld_child_count.setText(String.valueOf(0));*/
-                ReservationView reservationView = new ReservationView(new Reservation(), selectedRoom /*this.roomManager.getById(selectRezId)*/, this.fld_checkin, this.fld_checkout, this.fld_adult_count, this.fld_child_count);
+            //if (adultCount <= 0 || fld_adult_count == null || fld_checkin == null || fld_checkout == null) {
+                //Helper.showMessage("fill");
+               // return;
+            //} else {
+                int selectedRoomId = this.getTableSelectedRow(tbl_rez, 0);
+                ReservationView reservationView = new ReservationView(new Reservation(), selectedRoomId /*this.roomManager.getById(selectRezId)*/, this.fld_checkin.getText(), this.fld_checkout.getText(), adultCount, childCount);
 
+                //Room selectedRoom = this.roomManager.getById(selectRezId);
                 reservationView.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent e) {
@@ -326,57 +335,54 @@ public class EmployeeView extends Layout {
                         loadRoomComponent();
                     }
                 });
-                //Rezervasyon eklenince oda stoğunu azaltmak için.
-                if (this.reservationManager.save(new Reservation())) {
-                    stock -= 1;
-                    if (this.roomManager.updateRoomStock(stock, selectedRoom)) {
-                        loadRoomTable(null);
-                    }
-                } else {
-                    Helper.showMessage("error ");
-                }/*else {
-                Helper.showMessage("fill");
-            }*/
         });
 
 
         this.rez_menu.add("Güncelle").addActionListener(e -> {
-            try {
-                int selectRezId = this.getTableSelectedRow(tbl_rez, 0);
-                ReservationView reservationView = new ReservationView(this.reservationManager.getById(selectRezId), this.roomManager.getById(selectRezId), this.fld_checkin, this.fld_checkout, this.fld_adult_count, this.fld_child_count);
-                reservationView.addWindowListener(new WindowAdapter() {
+
+            this.fld_adult_count.setText("0");
+            this.fld_child_count.setText("0");
+            int adultCount = Integer.parseInt(this.fld_adult_count.getText());
+            int childCount = Integer.parseInt(this.fld_child_count.getText());
+
+            int selectRezId = this.getTableSelectedRow(tbl_rez, 0);
+            int selectedRoom = this.getTableSelectedRow(tbl_rez, 2);
+
+            ReservationView reservationView = new ReservationView(this.reservationManager.getById(selectRezId), selectedRoom, this.fld_checkin.getText(), this.fld_checkout.getText(), adultCount, childCount);
+            reservationView.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent e) {
                         loadReservationTable(null);
                         loadRoomTable(null);
                     }
                 });
-            } catch (Exception exp) {
-                exp.printStackTrace();
-            }
         });
 
         this.rez_menu.add("Sil").addActionListener(e -> {
-            if (Helper.confirm("sure"));
-            try {
+            if (Helper.confirm("sure")) ;
                 int selectRezId = this.getTableSelectedRow(tbl_rez, 0);
-                this.room = this.roomManager.getById(this.reservationManager.getById(selectRezId).getRoomId());
-                int stock = room.getStock();
+                int selectRezRoomId = this.getTableSelectedRow(tbl_rez, 2);
+                //this.room
+                Room room = this.roomManager.getById(selectRezRoomId/*this.reservationManager.getById(selectRezId).getRoomId()*/);
                 if (this.reservationManager.delete(selectRezId)) {
+                    room.setStock(room.getStock() + 1); //Rezervasyon silinince oda stoğunu artırmak için.
+                    this.roomManager.updateRoomStock(room);
                     Helper.showMessage("done");
                     loadReservationTable(null);
-                    stock += 1;
-
-                    if (this.roomManager.updateRoomStock(stock, this.room)) {
-                        loadRoomTable(null);
-                    }
-                } else {
-                    Helper.showMessage("error");
+                    loadRoomTable(null);
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
         });
         this.tbl_rez.setComponentPopupMenu(rez_menu);
+    }
+
+    private int parseCountValue(String value) {
+        try {
+            if (!value.isEmpty()) {
+                return Integer.parseInt(value);
+            }
+        } catch (NumberFormatException e) {
+            Helper.showMessage("Geçersiz sayı formatı: " + value);
+        }
+        return 0;
     }
 }

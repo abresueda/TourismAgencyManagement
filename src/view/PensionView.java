@@ -29,9 +29,6 @@ public class PensionView extends Layout {
         this.add(container);
         guiInitilaze(300, 300);
 
-        // Otel ID'sini yazar
-        lbl_hotel_id.setText("Otel ID : " + hotelId);
-
         //Combobox'ı dolu getirir.
         cmb_pansion_type.setModel(new DefaultComboBoxModel<>(new String[]{
                 "Ultra Her Şey Dahil", "Her Şey Dahil", "Oda Kahvaltı",
@@ -48,7 +45,8 @@ public class PensionView extends Layout {
 
                 // PansionType nesnesini günceller
                 pension.setPensionTypeId(pensionTypeId);
-                pension.setHotelId(hotelId);
+                pension.setHotelId(Integer.parseInt(fld_hotel_id.getText()));
+
 
                 //Seçilen pansiyon türüne göre boolean değerleri set eder.
                 updatePensionBooleans(pensionTypeId);

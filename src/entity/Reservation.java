@@ -16,9 +16,6 @@ public class Reservation {
     private int adultCount;
     private int childCount;
 
-    public Reservation() {
-    }
-
     public Reservation(int reservationId, int hotelId, int roomId, String customerName, String citizenNumber, String email, String phoneNumber,
                        LocalDate checkinDate, LocalDate checkoutDate, int totalPrice, int adultCount, int childCount) {
         this.reservationId = reservationId;
@@ -33,6 +30,9 @@ public class Reservation {
         this.totalPrice = totalPrice;
         this.adultCount = adultCount;
         this.childCount = childCount;
+    }
+
+    public Reservation() {
     }
 
     public int getReservationId() {
